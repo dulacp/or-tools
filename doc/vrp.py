@@ -68,6 +68,7 @@ class DataProblem():
         self._locations = [(
             loc[0]*city_block.width,
             loc[1]*city_block.height) for loc in locations]
+
         self._depot = 0
 
     @property
