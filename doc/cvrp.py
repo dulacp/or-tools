@@ -34,6 +34,17 @@ from ortools.constraint_solver import routing_enums_pb2
 ###########################
 # Problem Data Definition #
 ###########################
+class Vehicle():
+    """Stores the property of a vehicle"""
+    def __init__(self):
+        """Initializes the vehicle properties"""
+        self._capacity = 15
+
+    @property
+    def capacity(self):
+        """Gets vehicle capacity"""
+        return self._capacity
+
 class CityBlock():
     """City block definition"""
     @property
@@ -50,6 +61,7 @@ class DataProblem():
     """Stores the data for the problem"""
     def __init__(self):
         """Initializes the data for the problem"""
+        self._vehicle = Vehicle()
         self._num_vehicles = 4
 
         # Locations in block unit
@@ -68,7 +80,24 @@ class DataProblem():
         self._locations = [(
             loc[0]*city_block.width,
             loc[1]*city_block.height) for loc in locations]
+
         self._depot = 0
+
+        self._demands = \
+            [0, # depot
+             1, 1, # row 0
+             2, 4,
+             2, 4,
+             8, 8,
+             1, 2,
+             1, 2,
+             4, 4,
+             8, 8]
+
+    @property
+    def vehicle(self):
+        """Gets a vehicle"""
+        return self._vehicle
 
     @property
     def num_vehicles(self):
@@ -90,6 +119,11 @@ class DataProblem():
         """Gets depot location index"""
         return self._depot
 
+    @property
+    def demands(self):
+        """Gets demands at each location"""
+        return self._demands
+
 #######################
 # Problem Constraints #
 #######################
@@ -98,27 +132,48 @@ def manhattan_distance(position_1, position_2):
     return (abs(position_1[0] - position_2[0]) +
             abs(position_1[1] - position_2[1]))
 
-class CreateDistanceCallback(object): # pylint: disable=too-few-public-methods
+class CreateDistanceEvaluator(object): # pylint: disable=too-few-public-methods
     """Creates callback to return distance between points."""
     def __init__(self, data):
         """Initializes the distance matrix."""
-        self._distance = {}
+        self._distances = {}
 
         # precompute distance between location to have distance callback in O(1)
         for from_node in xrange(data.num_locations):
-            self._distance[from_node] = {}
+            self._distances[from_node] = {}
             for to_node in xrange(data.num_locations):
                 if from_node == to_node:
-                    self._distance[from_node][to_node] = 0
+                    self._distances[from_node][to_node] = 0
                 else:
-                    self._distance[from_node][to_node] = (
+                    self._distances[from_node][to_node] = (
                         manhattan_distance(
                             data.locations[from_node],
                             data.locations[to_node]))
 
-    def distance(self, from_node, to_node):
+    def distance_evaluator(self, from_node, to_node):
         """Returns the manhattan distance between the two nodes"""
-        return self._distance[from_node][to_node]
+        return self._distances[from_node][to_node]
+
+class CreateDemandEvaluator(object): # pylint: disable=too-few-public-methods
+    """Creates callback to get demands at each location."""
+    def __init__(self, data):
+        """Initializes the demand array."""
+        self._demands = data.demands
+
+    def demand_evaluator(self, from_node, to_node):
+        """Returns the demand of the current node"""
+        del to_node
+        return self._demands[from_node]
+
+def add_capacity_constraints(routing, data, demand_evaluator):
+    """Adds capacity constraint"""
+    capacity = "Capacity"
+    routing.AddDimension(
+        demand_evaluator,
+        0, # null capacity slack
+        data.vehicle.capacity,
+        True, # start cumul to zero
+        capacity)
 
 ###########
 # Printer #
@@ -154,6 +209,7 @@ class ConsolePrinter():
             index = self.routing.Start(vehicle_id)
             plan_output = 'Route for vehicle {0}:\n'.format(vehicle_id)
             route_dist = 0
+            route_load = 0
             while not self.routing.IsEnd(index):
                 node_index = self.routing.IndexToNode(index)
                 next_node_index = self.routing.IndexToNode(
@@ -161,17 +217,23 @@ class ConsolePrinter():
                 route_dist += manhattan_distance(
                     self.data.locations[node_index],
                     self.data.locations[next_node_index])
-                plan_output += ' {node_index} -> '.format(
-                    node_index=node_index)
+                route_load += self.data.demands[node_index]
+                plan_output += ' {node_index} Load({load}) -> '.format(
+                    node_index=node_index,
+                    load=route_load)
                 index = self.assignment.Value(self.routing.NextVar(index))
 
             node_index = self.routing.IndexToNode(index)
             total_dist += route_dist
-            plan_output += ' {node_index}\n'.format(
-                node_index=node_index)
+            plan_output += ' {node_index} Load({load})\n'.format(
+                node_index=node_index,
+                load=route_load)
             plan_output += 'Distance of the route {0}: {dist}\n'.format(
                 vehicle_id,
                 dist=route_dist)
+            plan_output += 'Load of the route {0}: {load}\n'.format(
+                vehicle_id,
+                load=route_load)
             print(plan_output)
         print('Total Distance of all routes: {dist}'.format(dist=total_dist))
 
@@ -180,14 +242,17 @@ class ConsolePrinter():
 ########
 def main():
     """Entry point of the program"""
-    # Instanciate the data problem.
+    # Instantiate the data problem.
     data = DataProblem()
 
     # Create Routing Model
     routing = pywrapcp.RoutingModel(data.num_locations, data.num_vehicles, data.depot)
     # Define weight of each edge
-    dist_callback = CreateDistanceCallback(data).distance
-    routing.SetArcCostEvaluatorOfAllVehicles(dist_callback)
+    distance_evaluator = CreateDistanceEvaluator(data).distance_evaluator
+    routing.SetArcCostEvaluatorOfAllVehicles(distance_evaluator)
+    # Add Capacity constraint
+    demand_evaluator = CreateDemandEvaluator(data).demand_evaluator
+    add_capacity_constraints(routing, data, demand_evaluator)
 
     # Setting first solution heuristic (cheapest addition).
     search_parameters = pywrapcp.RoutingModel.DefaultSearchParameters()
