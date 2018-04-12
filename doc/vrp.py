@@ -52,8 +52,6 @@ class DataProblem():
         """Initializes the data for the problem"""
         self._num_vehicles = 4
 
-        self._city_block = CityBlock()
-
         # Locations in block unit
         locations = \
                 [(4, 4), # depot
@@ -65,21 +63,17 @@ class DataProblem():
                  (1, 6), (2, 6),
                  (3, 7), (6, 7),
                  (0, 8), (7, 8)]
-                # locations in meters using the block dimension defined
+        # locations in meters using the block dimension defined
+        city_block = CityBlock()
         self._locations = [(
-            loc[0]*self.city_block.width,
-            loc[1]*self.city_block.height) for loc in locations]
+            loc[0]*city_block.width,
+            loc[1]*city_block.height) for loc in locations]
         self._depot = 0
 
     @property
     def num_vehicles(self):
         """Gets number of vehicles"""
         return self._num_vehicles
-
-    @property
-    def city_block(self):
-        """Gets a city block"""
-        return self._city_block
 
     @property
     def locations(self):
@@ -96,33 +90,35 @@ class DataProblem():
         """Gets depot location index"""
         return self._depot
 
-    def manhattan_distance(self, from_node, to_node):
-        """Computes the Manhattan distance between two nodes"""
-        return (abs(self.locations[from_node][0] - self.locations[to_node][0]) +
-                abs(self.locations[from_node][1] - self.locations[to_node][1]))
-
 #######################
 # Problem Constraints #
 #######################
-class CreateDistanceCallback(object): # pylint: disable=too-few-public-methods
+def manhattan_distance(position_1, position_2):
+    """Computes the Manhattan distance between two points"""
+    return (abs(position_1[0] - position_2[0]) +
+            abs(position_1[1] - position_2[1]))
+
+class CreateDistanceEvaluator(object): # pylint: disable=too-few-public-methods
     """Creates callback to return distance between points."""
     def __init__(self, data):
         """Initializes the distance matrix."""
-        self._distance = {}
+        self._distances = {}
 
         # precompute distance between location to have distance callback in O(1)
         for from_node in xrange(data.num_locations):
-            self._distance[from_node] = {}
+            self._distances[from_node] = {}
             for to_node in xrange(data.num_locations):
                 if from_node == to_node:
-                    self._distance[from_node][to_node] = 0
+                    self._distances[from_node][to_node] = 0
                 else:
-                    self._distance[from_node][to_node] = (
-                        data.manhattan_distance(from_node, to_node))
+                    self._distances[from_node][to_node] = (
+                        manhattan_distance(
+                            data.locations[from_node],
+                            data.locations[to_node]))
 
-    def distance(self, from_node, to_node):
+    def distance_evaluator(self, from_node, to_node):
         """Returns the manhattan distance between the two nodes"""
-        return self._distance[from_node][to_node]
+        return self._distances[from_node][to_node]
 
 ###########
 # Printer #
@@ -162,7 +158,9 @@ class ConsolePrinter():
                 node_index = self.routing.IndexToNode(index)
                 next_node_index = self.routing.IndexToNode(
                     self.assignment.Value(self.routing.NextVar(index)))
-                route_dist += self.data.manhattan_distance(node_index, next_node_index)
+                route_dist += manhattan_distance(
+                    self.data.locations[node_index],
+                    self.data.locations[next_node_index])
                 plan_output += ' {node_index} -> '.format(
                     node_index=node_index)
                 index = self.assignment.Value(self.routing.NextVar(index))
@@ -182,14 +180,14 @@ class ConsolePrinter():
 ########
 def main():
     """Entry point of the program"""
-    # Instanciate the data problem.
+    # Instantiate the data problem.
     data = DataProblem()
 
     # Create Routing Model
     routing = pywrapcp.RoutingModel(data.num_locations, data.num_vehicles, data.depot)
     # Define weight of each edge
-    dist_callback = CreateDistanceCallback(data).distance
-    routing.SetArcCostEvaluatorOfAllVehicles(dist_callback)
+    distance_evaluator = CreateDistanceEvaluator(data).distance_evaluator
+    routing.SetArcCostEvaluatorOfAllVehicles(distance_evaluator)
 
     # Setting first solution heuristic (cheapest addition).
     search_parameters = pywrapcp.RoutingModel.DefaultSearchParameters()

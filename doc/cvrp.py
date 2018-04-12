@@ -98,41 +98,27 @@ def manhattan_distance(position_1, position_2):
     return (abs(position_1[0] - position_2[0]) +
             abs(position_1[1] - position_2[1]))
 
-class CreateDistanceEvaluator(object): # pylint: disable=too-few-public-methods
+class CreateDistanceCallback(object): # pylint: disable=too-few-public-methods
     """Creates callback to return distance between points."""
     def __init__(self, data):
         """Initializes the distance matrix."""
-        self._distances = {}
+        self._distance = {}
 
         # precompute distance between location to have distance callback in O(1)
         for from_node in xrange(data.num_locations):
-            self._distances[from_node] = {}
+            self._distance[from_node] = {}
             for to_node in xrange(data.num_locations):
                 if from_node == to_node:
-                    self._distances[from_node][to_node] = 0
+                    self._distance[from_node][to_node] = 0
                 else:
-                    self._distances[from_node][to_node] = (
+                    self._distance[from_node][to_node] = (
                         manhattan_distance(
                             data.locations[from_node],
                             data.locations[to_node]))
 
-    def distance_evaluator(self, from_node, to_node):
+    def distance(self, from_node, to_node):
         """Returns the manhattan distance between the two nodes"""
-        return self._distances[from_node][to_node]
-
-def add_distance_dimension(routing, distance_evaluator):
-    """Add Global Span constraint"""
-    distance = "Distance"
-    routing.AddDimension(
-        distance_evaluator,
-        0, # null slack
-        3000, # maximum distance per vehicle
-        True, # start cumul to zero
-        distance)
-    distance_dimension = routing.GetDimensionOrDie(distance)
-    # Try to minimize the max distance among vehicles.
-    # /!\ It doesn't mean the standard deviation is minimized
-    distance_dimension.SetGlobalSpanCostCoefficient(100)
+        return self._distance[from_node][to_node]
 
 ###########
 # Printer #
@@ -194,15 +180,14 @@ class ConsolePrinter():
 ########
 def main():
     """Entry point of the program"""
-    # Instantiate the data problem.
+    # Instanciate the data problem.
     data = DataProblem()
 
     # Create Routing Model
     routing = pywrapcp.RoutingModel(data.num_locations, data.num_vehicles, data.depot)
     # Define weight of each edge
-    distance_evaluator = CreateDistanceEvaluator(data).distance_evaluator
-    routing.SetArcCostEvaluatorOfAllVehicles(distance_evaluator)
-    add_distance_dimension(routing, distance_evaluator)
+    dist_callback = CreateDistanceCallback(data).distance
+    routing.SetArcCostEvaluatorOfAllVehicles(dist_callback)
 
     # Setting first solution heuristic (cheapest addition).
     search_parameters = pywrapcp.RoutingModel.DefaultSearchParameters()
