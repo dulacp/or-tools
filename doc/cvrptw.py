@@ -14,8 +14,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Vehicle Routing Problem (VRP).
-   This is a sample using the routing library python wrapper to solve a VRP problem.
+"""Capacitated Vehicle Routing Problem with Time windows (CVRPTW).
+   This is a sample using the routing library python wrapper to solve a CVRPTW problem.
    A description of the problem can be found here:
    http://en.wikipedia.org/wiki/Vehicle_routing_problem.
 
@@ -92,25 +92,25 @@ class DataProblem():
 
         self._demands = \
             [0, # depot
-             1, 1, # row 0
-             2, 4,
-             2, 4,
-             8, 8,
-             1, 2,
-             1, 2,
-             4, 4,
-             8, 8]
+             1, 1, # 1, 2
+             2, 4, # 3, 4
+             2, 4, # 5, 6
+             8, 8, # 7, 8
+             1, 2, # 9,10
+             1, 2, # 11,12
+             4, 4, # 13, 14
+             8, 8] # 15, 16
 
         self._time_windows = \
-            [(0,0),
-             (0, 8000), (0, 8000), # row 0
-             (0, 8000), (0, 8000),
-             (0, 8000), (0, 8000),
-             (0, 8000), (0, 8000),
-             (0, 8000), (0, 8000),
-             (0, 8000), (0, 8000),
-             (0, 8000), (0, 8000),
-             (0, 8000), (0, 8000)]
+            [(0, 0),
+             (139+2679+1282+821, 139+2679+1282+821), (197+739+2539+1397, 197+739+2539+1397), # 1, 2
+             (139+2679+1282, 139+2679+1282), (139+2679, 139+2679), # 3, 4
+             (197, 197), (197+739+2539, 197+739+2539), # 5, 6
+             (139, 139), (197+739, 197+739), # 7, 8
+             (139, 139), (139+497+1339+2654, 139+497+1339+2654), # 9, 10
+             (279+739+1503+2597, 279+739+1503+2597), (279, 279), # 11, 12
+             (279+739, 279+739), (139+497, 139+497), # 13, 14
+             (279+739+1503, 279+739+1503), (139+497+1339, 139+497+1339)] # 15, 16
 
     @property
     def vehicle(self):
@@ -248,7 +248,6 @@ class CreateTimeEvaluator(object):
                     self._total_time[from_node][to_node] = int(
                         self.service_time(data, from_node) +
                         self.travel_time(data, from_node, to_node))
-        print('transit time: {0}'.format(self._total_time))
 
     def time_evaluator(self, from_node, to_node):
         """Returns the total time between the two nodes"""
@@ -266,9 +265,9 @@ def add_time_window_constraints(routing, data, time_evaluator):
     time_dimension = routing.GetDimensionOrDie(time)
     # Try to minimize the max distance among vehicles.
     # /!\ It doesn't mean the standard deviation is minimized
-    time_dimension.SetGlobalSpanCostCoefficient(100)
-    #for count, time_window in enumerate(data.time_windows):
-    #    time_dimension.CumulVar(count).SetRange(time_window[0], time_window[1])
+    #time_dimension.SetGlobalSpanCostCoefficient(100)
+    for count, time_window in enumerate(data.time_windows):
+        time_dimension.CumulVar(count).SetRange(time_window[0], time_window[1])
 
 ###########
 # Printer #
