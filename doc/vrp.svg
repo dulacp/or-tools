@@ -42,38 +42,38 @@ width="1020" height="748" viewBox="-54 -54 1020 748">
 <line x1="912" y1="0" x2="912" y2="640" style="stroke-width:2;stroke:#969696;fill:none"/>
 <!-- Print locations -->
 <circle cx="228" cy="0" r="26" style="stroke-width:6;stroke:#4285F4;fill:white"/>
-<text x="228" y="0" dy="13" style="text-anchor:middle;font-weight:bold;font-size:26;stroke:none;fill:#4285F4">1</text>
+<text x="228" y="0" dy="8" style="text-anchor:middle;font-weight:bold;font-size:26;stroke:none;fill:#4285F4">1</text>
 <circle cx="912" cy="0" r="26" style="stroke-width:6;stroke:#4285F4;fill:white"/>
-<text x="912" y="0" dy="13" style="text-anchor:middle;font-weight:bold;font-size:26;stroke:none;fill:#4285F4">2</text>
+<text x="912" y="0" dy="8" style="text-anchor:middle;font-weight:bold;font-size:26;stroke:none;fill:#4285F4">2</text>
 <circle cx="0" cy="80" r="26" style="stroke-width:6;stroke:#4285F4;fill:white"/>
-<text x="0" y="80" dy="13" style="text-anchor:middle;font-weight:bold;font-size:26;stroke:none;fill:#4285F4">3</text>
+<text x="0" y="80" dy="8" style="text-anchor:middle;font-weight:bold;font-size:26;stroke:none;fill:#4285F4">3</text>
 <circle cx="114" cy="80" r="26" style="stroke-width:6;stroke:#4285F4;fill:white"/>
-<text x="114" y="80" dy="13" style="text-anchor:middle;font-weight:bold;font-size:26;stroke:none;fill:#4285F4">4</text>
+<text x="114" y="80" dy="8" style="text-anchor:middle;font-weight:bold;font-size:26;stroke:none;fill:#4285F4">4</text>
 <circle cx="570" cy="160" r="26" style="stroke-width:6;stroke:#4285F4;fill:white"/>
-<text x="570" y="160" dy="13" style="text-anchor:middle;font-weight:bold;font-size:26;stroke:none;fill:#4285F4">5</text>
+<text x="570" y="160" dy="8" style="text-anchor:middle;font-weight:bold;font-size:26;stroke:none;fill:#4285F4">5</text>
 <circle cx="798" cy="160" r="26" style="stroke-width:6;stroke:#4285F4;fill:white"/>
-<text x="798" y="160" dy="13" style="text-anchor:middle;font-weight:bold;font-size:26;stroke:none;fill:#4285F4">6</text>
+<text x="798" y="160" dy="8" style="text-anchor:middle;font-weight:bold;font-size:26;stroke:none;fill:#4285F4">6</text>
 <circle cx="342" cy="240" r="26" style="stroke-width:6;stroke:#4285F4;fill:white"/>
-<text x="342" y="240" dy="13" style="text-anchor:middle;font-weight:bold;font-size:26;stroke:none;fill:#4285F4">7</text>
+<text x="342" y="240" dy="8" style="text-anchor:middle;font-weight:bold;font-size:26;stroke:none;fill:#4285F4">7</text>
 <circle cx="684" cy="240" r="26" style="stroke-width:6;stroke:#4285F4;fill:white"/>
-<text x="684" y="240" dy="13" style="text-anchor:middle;font-weight:bold;font-size:26;stroke:none;fill:#4285F4">8</text>
+<text x="684" y="240" dy="8" style="text-anchor:middle;font-weight:bold;font-size:26;stroke:none;fill:#4285F4">8</text>
 <circle cx="570" cy="400" r="26" style="stroke-width:6;stroke:#4285F4;fill:white"/>
-<text x="570" y="400" dy="13" style="text-anchor:middle;font-weight:bold;font-size:26;stroke:none;fill:#4285F4">9</text>
+<text x="570" y="400" dy="8" style="text-anchor:middle;font-weight:bold;font-size:26;stroke:none;fill:#4285F4">9</text>
 <circle cx="912" cy="400" r="26" style="stroke-width:6;stroke:#4285F4;fill:white"/>
-<text x="912" y="400" dy="13" style="text-anchor:middle;font-weight:bold;font-size:26;stroke:none;fill:#4285F4">10</text>
+<text x="912" y="400" dy="8" style="text-anchor:middle;font-weight:bold;font-size:26;stroke:none;fill:#4285F4">10</text>
 <circle cx="114" cy="480" r="26" style="stroke-width:6;stroke:#4285F4;fill:white"/>
-<text x="114" y="480" dy="13" style="text-anchor:middle;font-weight:bold;font-size:26;stroke:none;fill:#4285F4">11</text>
+<text x="114" y="480" dy="8" style="text-anchor:middle;font-weight:bold;font-size:26;stroke:none;fill:#4285F4">11</text>
 <circle cx="228" cy="480" r="26" style="stroke-width:6;stroke:#4285F4;fill:white"/>
-<text x="228" y="480" dy="13" style="text-anchor:middle;font-weight:bold;font-size:26;stroke:none;fill:#4285F4">12</text>
+<text x="228" y="480" dy="8" style="text-anchor:middle;font-weight:bold;font-size:26;stroke:none;fill:#4285F4">12</text>
 <circle cx="342" cy="560" r="26" style="stroke-width:6;stroke:#4285F4;fill:white"/>
-<text x="342" y="560" dy="13" style="text-anchor:middle;font-weight:bold;font-size:26;stroke:none;fill:#4285F4">13</text>
+<text x="342" y="560" dy="8" style="text-anchor:middle;font-weight:bold;font-size:26;stroke:none;fill:#4285F4">13</text>
 <circle cx="684" cy="560" r="26" style="stroke-width:6;stroke:#4285F4;fill:white"/>
-<text x="684" y="560" dy="13" style="text-anchor:middle;font-weight:bold;font-size:26;stroke:none;fill:#4285F4">14</text>
+<text x="684" y="560" dy="8" style="text-anchor:middle;font-weight:bold;font-size:26;stroke:none;fill:#4285F4">14</text>
 <circle cx="0" cy="640" r="26" style="stroke-width:6;stroke:#4285F4;fill:white"/>
-<text x="0" y="640" dy="13" style="text-anchor:middle;font-weight:bold;font-size:26;stroke:none;fill:#4285F4">15</text>
+<text x="0" y="640" dy="8" style="text-anchor:middle;font-weight:bold;font-size:26;stroke:none;fill:#4285F4">15</text>
 <circle cx="798" cy="640" r="26" style="stroke-width:6;stroke:#4285F4;fill:white"/>
-<text x="798" y="640" dy="13" style="text-anchor:middle;font-weight:bold;font-size:26;stroke:none;fill:#4285F4">16</text>
+<text x="798" y="640" dy="8" style="text-anchor:middle;font-weight:bold;font-size:26;stroke:none;fill:#4285F4">16</text>
 <!-- Print depot -->
 <circle cx="456" cy="320" r="26" style="stroke-width:6;stroke:#101010;fill:white"/>
-<text x="456" y="320" dy="13" style="text-anchor:middle;font-weight:bold;font-size:26;stroke:none;fill:#101010">0</text>
+<text x="456" y="320" dy="8" style="text-anchor:middle;font-weight:bold;font-size:26;stroke:none;fill:#101010">0</text>
 </svg>
