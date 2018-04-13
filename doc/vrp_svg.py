@@ -36,8 +36,8 @@ class Vehicle():
     def __init__(self):
         """Initializes the vehicle properties"""
         self._capacity = 15
-        # Travel speed: 15km/h to convert in m/s
-        self._speed = 15 / 3.6
+        # Travel speed: 5km/h to convert in m/s
+        self._speed = 5 / 3.6
 
     @property
     def capacity(self):
@@ -98,6 +98,17 @@ class DataProblem():
              4, 4,
              8, 8]
 
+        self._time_windows = \
+            [(0, 0),
+             (139+2679+1282+821, 139+2679+1282+821), (197+739+2539+1397, 197+739+2539+1397), # 1, 2
+             (139+2679+1282, 139+2679+1282), (139+2679, 139+2679), # 3, 4
+             (197, 197), (197+739+2539, 197+739+2539), # 5, 6
+             (139, 139), (197+739, 197+739), # 7, 8
+             (139, 139), (139+497+1339+2654, 139+497+1339+2654), # 9, 10
+             (279+739+1503+2597, 279+739+1503+2597), (279, 279), # 11, 12
+             (279+739, 279+739), (139+497, 139+497), # 13, 14
+             (279+739+1503, 279+739+1503), (139+497+1339, 139+497+1339)] # 15, 16
+
     @property
     def vehicle(self):
         """Gets a vehicle"""
@@ -133,6 +144,16 @@ class DataProblem():
         """Gets demands at each location"""
         return self._demands
 
+    @property
+    def time_per_demand_unit(self):
+        """Gets the time (in s) to load a demand"""
+        return 5 * 60 # 5 minutes/unit
+
+    @property
+    def time_windows(self):
+        """Gets (start time, end time) for each locations"""
+        return self._time_windows
+
     def manhattan_distance(self, from_node, to_node):
         """Computes the Manhattan distance between two nodes"""
         return (abs(self.locations[from_node][0] - self.locations[to_node][0]) +
@@ -141,7 +162,7 @@ class DataProblem():
 #######################
 # Problem Constraints #
 #######################
-class CreateDistanceCallback(object): # pylint: disable=too-few-public-methods
+class CreateDistanceEvaluator(object): # pylint: disable=too-few-public-methods
     """Creates callback to return distance between points."""
     def __init__(self, data):
         """Initializes the distance matrix."""
@@ -175,7 +196,7 @@ def add_global_span_constraints(routing, data, dist_callback):
     # /!\ It doesn't mean the standard deviation is minimized
     distance_dimension.SetGlobalSpanCostCoefficient(100)
 
-class CreateDemandCallback(object): # pylint: disable=too-few-public-methods
+class CreateDemandEvaluator(object): # pylint: disable=too-few-public-methods
     """Creates callback to get demands at each location."""
     def __init__(self, data):
         """Initializes the demand array."""
@@ -196,7 +217,7 @@ def add_capacity_constraints(routing, data, demand_callback):
         True, # start cumul to zero
         capacity)
 
-class CreateTimeCallback(object):
+class CreateTimeEvaluator(object):
     """Creates callback to get total times between locations."""
     @staticmethod
     def service_time(data, node):
@@ -226,16 +247,15 @@ class CreateTimeCallback(object):
                         self.service_time(data, from_node) +
                         self.travel_time(data, from_node, to_node))
 
-    def time(self, from_node, to_node):
+    def time_evaluator(self, from_node, to_node):
         """Returns the total time between the two nodes"""
         return self._total_time[from_node][to_node]
 
-def add_time_window_constraints(routing, data):
+def add_time_window_constraints(routing, data, time_evaluator):
     """Add Global Span constraint"""
-    time_callback = CreateTimeCallback(data).time
     time = "Time"
     routing.AddDimension(
-        time_callback,
+        time_evaluator,
         8000, # null slack
         8000, # maximum distance per vehicle
         True, # start cumul to zero
@@ -375,7 +395,7 @@ class SVG():
         print(r'<text x="{x}" y="{y}" dy="{dy}" {style}>{txt}</text>'.format(
             x=position[0],
             y=position[1],
-            dy=size / 2,
+            dy=size / 3,
             style=text_style,
             txt=text))
 
@@ -430,15 +450,6 @@ class SVGPrinter():
         for idx, loc in enumerate(self.data.locations):
             if idx == self.data.depot:
                 continue
-            if self._args['capacity'] is True:
-                cap = self.data.demands[idx]
-                color_cap = self.color_palette.value(int(math.log(cap, 2)))
-                self.svg.draw_text(
-                    cap,
-                    [x+y for x, y in zip(loc, [self.radius, self.radius])],
-                    self.radius,
-                    'none',
-                    color_cap)
             self.svg.draw_circle(loc, self.radius, self.stroke_width, color, 'white')
             self.svg.draw_text(idx, loc, self.radius, 'none', color)
 
@@ -449,9 +460,24 @@ class SVGPrinter():
             if idx == self.data.depot:
                 continue
             demand = self.data.demands[idx]
-            position = [x+y for x, y in zip(loc, [self.radius, self.radius])]
+            position = [x+y for x, y in zip(loc, [self.radius*1.2, self.radius*1.2])]
             color = self.color_palette.value(int(math.log(demand, 2)))
-            self.svg.draw_text(demand, position, self.radius, 'none', color)
+            self.svg.draw_text(demand, position, self.radius, 'white', color)
+
+    def draw_time_windows(self):
+        """Draws all the time windows"""
+        print(r'<!-- Print time windows -->')
+        for idx, loc in enumerate(self.data.locations):
+            if idx == self.data.depot:
+                continue
+            time_window = self.data.time_windows[idx]
+            position = [x+y for x, y in zip(loc, [self.radius*0, -self.radius*1.6])]
+            color = self.color_palette.value(0)
+            self.svg.draw_text(
+                '[{t1},{t2}]'.format(t1=time_window[0]/60, t2=time_window[1]/60),
+                position,
+                self.radius*0.75,
+                'white', color)
 
     def draw_depot(self):
         """Draws the depot"""
@@ -526,6 +552,8 @@ class SVGPrinter():
         self.draw_depot()
         if self._args['capacity'] is True:
             self.draw_demands()
+        if self._args['time_window'] is True:
+            self.draw_time_windows()
         self.svg.footer()
 
 ########
@@ -572,15 +600,16 @@ def main():
         # Create Routing Model
         routing = pywrapcp.RoutingModel(data.num_locations, data.num_vehicles, data.depot)
         # Define weight of each edge
-        dist_callback = CreateDistanceCallback(data).distance
+        dist_callback = CreateDistanceEvaluator(data).distance
         routing.SetArcCostEvaluatorOfAllVehicles(dist_callback)
         if args['global_span'] is True:
             add_global_span_constraints(routing, data, dist_callback)
         if args['capacity'] is True:
-            demand_callback = CreateDemandCallback(data).demand
-            add_capacity_constraints(routing, data, demand_callback)
+            demand_evaluator = CreateDemandEvaluator(data).demand
+            add_capacity_constraints(routing, data, demand_evaluator)
         if args['time_window'] is True:
-            add_time_window_constraints(routing, data)
+            time_evaluator = CreateTimeEvaluator(data).time_evaluator
+            add_time_window_constraints(routing, data, time_evaluator)
         if args['fuel'] is True:
             add_fuel_constraints(routing, data)
         if args['resource'] is True:

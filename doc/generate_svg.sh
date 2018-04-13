@@ -13,10 +13,10 @@ set -x
 ./vrp_svg.py --capacity > cvrp.svg
 ./vrp_svg.py --capacity --solution > cvrp_solution.svg
 
-## Time Window Problem
-#./vrp_svg.py --time-window > vrptw.svg
-#./vrp_svg.py --time-window --solution > vrptw_solution.svg
-#
+# Time Window Problem
+./vrp_svg.py --capacity --time-window > cvrptw.svg
+./vrp_svg.py --capacity --time-window --solution > cvrptw_solution.svg
+
 ## Fuel Problem
 #./vrp_svg.py --fuel > vrpf.svg
 #./vrp_svg.py --fuel --solution > vrpf_solution.svg
