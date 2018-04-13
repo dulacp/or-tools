@@ -39,8 +39,8 @@ class Vehicle():
     def __init__(self):
         """Initializes the vehicle properties"""
         self._capacity = 15
-        # Travel speed: 15km/h to convert in m/s
-        self._speed = 15 / 3.6
+        # Travel speed: 5km/h to convert in m/s
+        self._speed = 5 / 3.6
 
     @property
     def capacity(self):
@@ -101,6 +101,17 @@ class DataProblem():
              4, 4,
              8, 8]
 
+        self._time_windows = \
+            [(0,0),
+             (0, 8000), (0, 8000), # row 0
+             (0, 8000), (0, 8000),
+             (0, 8000), (0, 8000),
+             (0, 8000), (0, 8000),
+             (0, 8000), (0, 8000),
+             (0, 8000), (0, 8000),
+             (0, 8000), (0, 8000),
+             (0, 8000), (0, 8000)]
+
     @property
     def vehicle(self):
         """Gets a vehicle"""
@@ -136,6 +147,10 @@ class DataProblem():
         """Gets the time (in s) to load a demand"""
         return 5 * 60 # 5 minutes/unit
 
+    @property
+    def time_windows(self):
+        """Gets (start time, end time) for each locations"""
+        return self._time_windows
 
 #######################
 # Problem Constraints #
@@ -166,6 +181,20 @@ class CreateDistanceEvaluator(object): # pylint: disable=too-few-public-methods
     def distance_evaluator(self, from_node, to_node):
         """Returns the manhattan distance between the two nodes"""
         return self._distances[from_node][to_node]
+
+def add_distance_dimension(routing, distance_evaluator):
+    """Add Global Span constraint"""
+    distance = "Distance"
+    routing.AddDimension(
+        distance_evaluator,
+        0, # null slack
+        3000, # maximum distance per vehicle
+        True, # start cumul to zero
+        distance)
+    distance_dimension = routing.GetDimensionOrDie(distance)
+    # Try to minimize the max distance among vehicles.
+    # /!\ It doesn't mean the standard deviation is minimized
+    distance_dimension.SetGlobalSpanCostCoefficient(100)
 
 class CreateDemandEvaluator(object): # pylint: disable=too-few-public-methods
     """Creates callback to get demands at each location."""
@@ -216,9 +245,10 @@ class CreateTimeEvaluator(object):
                 if from_node == to_node:
                     self._total_time[from_node][to_node] = 0
                 else:
-                    self._total_time[from_node][to_node] = (
+                    self._total_time[from_node][to_node] = int(
                         self.service_time(data, from_node) +
                         self.travel_time(data, from_node, to_node))
+        print('transit time: {0}'.format(self._total_time))
 
     def time_evaluator(self, from_node, to_node):
         """Returns the total time between the two nodes"""
@@ -229,11 +259,14 @@ def add_time_window_constraints(routing, data, time_evaluator):
     time = "Time"
     routing.AddDimension(
         time_evaluator,
-        0, # null slack
-        80000, # maximum time per vehicle
+        3600*8, # null slack
+        3600*8, # maximum time per vehicle
         True, # start cumul to zero
         time)
-    #time_dimension = routing.GetDimensionOrDie(time)
+    time_dimension = routing.GetDimensionOrDie(time)
+    # Try to minimize the max distance among vehicles.
+    # /!\ It doesn't mean the standard deviation is minimized
+    time_dimension.SetGlobalSpanCostCoefficient(100)
     #for count, time_window in enumerate(data.time_windows):
     #    time_dimension.CumulVar(count).SetRange(time_window[0], time_window[1])
 
@@ -266,6 +299,9 @@ class ConsolePrinter():
     def print(self):
         """Prints assignment on console"""
         # Inspect solution.
+        #distance_dimension = routing.GetDimensionOrDie('Distance')
+        capacity_dimension = self.routing.GetDimensionOrDie('Capacity')
+        time_dimension = self.routing.GetDimensionOrDie('Time')
         total_dist = 0
         total_time = 0
         for vehicle_id in xrange(self.data.num_vehicles):
@@ -281,8 +317,12 @@ class ConsolePrinter():
                 route_dist += manhattan_distance(
                     self.data.locations[node_index],
                     self.data.locations[next_node_index])
-                route_load += self.data.demands[node_index]
-                route_time += 2
+                load_var = capacity_dimension.CumulVar(index)
+                route_load = self.assignment.Value(load_var)
+                time_var = time_dimension.CumulVar(index)
+                route_time = self.assignment.Value(time_var)
+                #tmin = self.assignment.Min(time_var)
+                #tmax = self.assignment.Max(time_var)
                 plan_output += ' {node_index} Load({load}) Time({time}) -> '.format(
                     node_index=node_index,
                     load=route_load,
@@ -290,6 +330,10 @@ class ConsolePrinter():
                 index = self.assignment.Value(self.routing.NextVar(index))
 
             node_index = self.routing.IndexToNode(index)
+            load_var = capacity_dimension.CumulVar(index)
+            route_load = self.assignment.Value(load_var)
+            time_var = time_dimension.CumulVar(index)
+            route_time = self.assignment.Value(time_var)
             total_dist += route_dist
             total_time += route_time
             plan_output += ' {node_index} Load({load}) Time({time})\n'.format(
