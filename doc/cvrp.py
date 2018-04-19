@@ -218,24 +218,16 @@ class ConsolePrinter():
                     self.data.locations[node_index],
                     self.data.locations[next_node_index])
                 route_load += self.data.demands[node_index]
-                plan_output += ' {node_index} Load({load}) -> '.format(
-                    node_index=node_index,
-                    load=route_load)
+                plan_output += ' {0} Load({1}) -> '.format(node_index, route_load)
                 index = self.assignment.Value(self.routing.NextVar(index))
 
             node_index = self.routing.IndexToNode(index)
             total_dist += route_dist
-            plan_output += ' {node_index} Load({load})\n'.format(
-                node_index=node_index,
-                load=route_load)
-            plan_output += 'Distance of the route {0}: {dist}\n'.format(
-                vehicle_id,
-                dist=route_dist)
-            plan_output += 'Load of the route {0}: {load}\n'.format(
-                vehicle_id,
-                load=route_load)
+            plan_output += ' {0} Load({1})\n'.format(node_index, route_load)
+            plan_output += 'Distance of the route: {0}m\n'.format(route_dist)
+            plan_output += 'Load of the route: {0}\n'.format(route_load)
             print(plan_output)
-        print('Total Distance of all routes: {dist}'.format(dist=total_dist))
+        print('Total Distance of all routes: {0}m'.format(total_dist))
 
 ########
 # Main #
