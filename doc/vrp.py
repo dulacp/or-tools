@@ -162,19 +162,15 @@ class ConsolePrinter():
                 route_dist += manhattan_distance(
                     self.data.locations[node_index],
                     self.data.locations[next_node_index])
-                plan_output += ' {node_index} -> '.format(
-                    node_index=node_index)
+                plan_output += ' {0} -> '.format(node_index)
                 index = self.assignment.Value(self.routing.NextVar(index))
 
             node_index = self.routing.IndexToNode(index)
             total_dist += route_dist
-            plan_output += ' {node_index}\n'.format(
-                node_index=node_index)
-            plan_output += 'Distance of the route {0}: {dist}\n'.format(
-                vehicle_id,
-                dist=route_dist)
+            plan_output += ' {0}\n'.format(node_index)
+            plan_output += 'Distance of the route: {0}m\n'.format(route_dist)
             print(plan_output)
-        print('Total Distance of all routes: {dist}'.format(dist=total_dist))
+        print('Total Distance of all routes: {0}m'.format(total_dist))
 
 ########
 # Main #

@@ -14,8 +14,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Vehicle Routing Problem (VRP).
-   This is a sample using the routing library python wrapper to solve a VRP problem.
+"""Capacitated Vehicle Routing Problem (CVRP).
+   This is a sample using the routing library python wrapper to solve a CVRP problem.
    A description of the problem can be found here:
    http://en.wikipedia.org/wiki/Vehicle_routing_problem.
 

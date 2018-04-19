@@ -263,9 +263,6 @@ def add_time_window_constraints(routing, data, time_evaluator):
         True, # start cumul to zero
         time)
     time_dimension = routing.GetDimensionOrDie(time)
-    # Try to minimize the max distance among vehicles.
-    # /!\ It doesn't mean the standard deviation is minimized
-    #time_dimension.SetGlobalSpanCostCoefficient(100)
     for count, time_window in enumerate(data.time_windows):
         time_dimension.CumulVar(count).SetRange(time_window[0], time_window[1])
 
@@ -322,10 +319,7 @@ class ConsolePrinter():
                 route_time = self.assignment.Value(time_var)
                 #tmin = self.assignment.Min(time_var)
                 #tmax = self.assignment.Max(time_var)
-                plan_output += ' {node_index} Load({load}) Time({time}) -> '.format(
-                    node_index=node_index,
-                    load=route_load,
-                    time=route_time)
+                plan_output += ' {0} Load({1}) Time({2}) -> '.format(node_index, route_load, route_time)
                 index = self.assignment.Value(self.routing.NextVar(index))
 
             node_index = self.routing.IndexToNode(index)
@@ -335,22 +329,13 @@ class ConsolePrinter():
             route_time = self.assignment.Value(time_var)
             total_dist += route_dist
             total_time += route_time
-            plan_output += ' {node_index} Load({load}) Time({time})\n'.format(
-                node_index=node_index,
-                load=route_load,
-                time=route_time)
-            plan_output += 'Distance of the route {0}: {dist}\n'.format(
-                vehicle_id,
-                dist=route_dist)
-            plan_output += 'Load of the route {0}: {load}\n'.format(
-                vehicle_id,
-                load=route_load)
-            plan_output += 'Time of the route {0}: {time}\n'.format(
-                vehicle_id,
-                time=route_time)
+            plan_output += ' {0} Load({1}) Time({2})\n'.format(node_index, route_load, route_time)
+            plan_output += 'Distance of the route: {0}m\n'.format(route_dist)
+            plan_output += 'Load of the route: {0}\n'.format(route_load)
+            plan_output += 'Time of the route: {0}s\n'.format(route_time)
             print(plan_output)
-        print('Total Distance of all routes: {dist}'.format(dist=total_dist))
-        print('Total Time of all routes: {time}'.format(time=total_time))
+        print('Total Distance of all routes: {0}m'.format(total_dist))
+        print('Total Time of all routes: {0}s'.format(total_time))
 
 ########
 # Main #
