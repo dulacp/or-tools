@@ -14,7 +14,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Capacitated Vehicle Routing Problem with Time windows (CVRPTW).
+"""Capacitated Vehicle Routing Problem with Time Windows (CVRPTW).
    This is a sample using the routing library python wrapper to solve a CVRPTW problem.
    A description of the problem can be found here:
    http://en.wikipedia.org/wiki/Vehicle_routing_problem.
@@ -82,7 +82,7 @@ class DataProblem():
                  (1, 6), (2, 6),
                  (3, 7), (6, 7),
                  (0, 8), (7, 8)]
-        # locations in meters using the block dimension defined
+        # locations in meters using the city block dimension
         city_block = CityBlock()
         self._locations = [(
             loc[0]*city_block.width,
@@ -182,20 +182,6 @@ class CreateDistanceEvaluator(object): # pylint: disable=too-few-public-methods
         """Returns the manhattan distance between the two nodes"""
         return self._distances[from_node][to_node]
 
-def add_distance_dimension(routing, distance_evaluator):
-    """Add Global Span constraint"""
-    distance = "Distance"
-    routing.AddDimension(
-        distance_evaluator,
-        0, # null slack
-        3000, # maximum distance per vehicle
-        True, # start cumul to zero
-        distance)
-    distance_dimension = routing.GetDimensionOrDie(distance)
-    # Try to minimize the max distance among vehicles.
-    # /!\ It doesn't mean the standard deviation is minimized
-    distance_dimension.SetGlobalSpanCostCoefficient(100)
-
 class CreateDemandEvaluator(object): # pylint: disable=too-few-public-methods
     """Creates callback to get demands at each location."""
     def __init__(self, data):
@@ -213,7 +199,7 @@ def add_capacity_constraints(routing, data, demand_evaluator):
     routing.AddDimension(
         demand_evaluator,
         0, # null capacity slack
-        data.vehicle.capacity,
+        data.vehicle.capacity, # vehicle maximum capacity
         True, # start cumul to zero
         capacity)
 
@@ -295,7 +281,6 @@ class ConsolePrinter():
     def print(self):
         """Prints assignment on console"""
         # Inspect solution.
-        #distance_dimension = routing.GetDimensionOrDie('Distance')
         capacity_dimension = self.routing.GetDimensionOrDie('Capacity')
         time_dimension = self.routing.GetDimensionOrDie('Time')
         total_dist = 0
@@ -353,7 +338,7 @@ def main():
     # Add Capacity constraint
     demand_evaluator = CreateDemandEvaluator(data).demand_evaluator
     add_capacity_constraints(routing, data, demand_evaluator)
-    # Add Time constraint
+    # Add Time Window constraint
     time_evaluator = CreateTimeEvaluator(data).time_evaluator
     add_time_window_constraints(routing, data, time_evaluator)
 
