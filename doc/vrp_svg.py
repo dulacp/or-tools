@@ -18,12 +18,13 @@
    Manhattan average block 750x264ft -> 228x80m
    src: https://nyti.ms/2GDoRIe "NY Times: Know Your distance"
 
-   Distances are in meters and time in seconds.
+   Distances are in meters and time in minutes.
 """
 
 from __future__ import print_function
 import argparse
 import math
+import sys
 from six.moves import xrange
 from ortools.constraint_solver import pywrapcp
 from ortools.constraint_solver import routing_enums_pb2
@@ -36,8 +37,8 @@ class Vehicle():
     def __init__(self):
         """Initializes the vehicle properties"""
         self._capacity = 15
-        # Travel speed: 5km/h to convert in m/s
-        self._speed = 5 / 3.6
+        # Travel speed: 5km/h to convert in m/min
+        self._speed = 5 / 3.6 * 60
 
     @property
     def capacity(self):
@@ -100,14 +101,14 @@ class DataProblem():
 
         self._time_windows = \
             [(0, 0),
-             (139+2679+1282+821, 139+2679+1282+821), (197+739+2539+1397, 197+739+2539+1397), # 1, 2
-             (139+2679+1282, 139+2679+1282), (139+2679, 139+2679), # 3, 4
-             (197, 197), (197+739+2539, 197+739+2539), # 5, 6
-             (139, 139), (197+739, 197+739), # 7, 8
-             (139, 139), (139+497+1339+2654, 139+497+1339+2654), # 9, 10
-             (279+739+1503+2597, 279+739+1503+2597), (279, 279), # 11, 12
-             (279+739, 279+739), (139+497, 139+497), # 13, 14
-             (279+739+1503, 279+739+1503), (139+497+1339, 139+497+1339)] # 15, 16
+             (75, 85), (75, 85), # 1, 2
+             (60, 70), (45, 55), # 3, 4
+             (0, 8), (50, 60), # 5, 6
+             (0, 10), (10, 20), # 7, 8
+             (0, 10), (75, 85), # 9, 10
+             (85, 95), (5, 15), # 11, 12
+             (15, 25), (10, 20), # 13, 14
+             (45, 55), (30, 40)] # 15, 16
 
     @property
     def vehicle(self):
@@ -147,7 +148,7 @@ class DataProblem():
     @property
     def time_per_demand_unit(self):
         """Gets the time (in s) to load a demand"""
-        return 5 * 60 # 5 minutes/unit
+        return 5 # 5 minutes/unit
 
     @property
     def time_windows(self):
@@ -256,8 +257,8 @@ def add_time_window_constraints(routing, data, time_evaluator):
     time = "Time"
     routing.AddDimension(
         time_evaluator,
-        8000, # null slack
-        8000, # maximum distance per vehicle
+        320, # waiting allowed
+        320, # maximum time per vehicle
         True, # start cumul to zero
         time)
     time_dimension = routing.GetDimensionOrDie(time)
@@ -443,6 +444,14 @@ class SVGPrinter():
             p_2 = [p_1[0], 8*self.data.city_block.height]
             self.svg.draw_line(p_1, p_2, 2, color)
 
+    def draw_depot(self):
+        """Draws the depot"""
+        print(r'<!-- Print depot -->')
+        color = self.color_palette.value_from_name('black')
+        loc = self.data.locations[self.data.depot]
+        self.svg.draw_circle(loc, self.radius, self.stroke_width, color, 'white')
+        self.svg.draw_text(self.data.depot, loc, self.radius, 'none', color)
+
     def draw_locations(self):
         """Draws all the locations but the depot"""
         print(r'<!-- Print locations -->')
@@ -460,7 +469,7 @@ class SVGPrinter():
             if idx == self.data.depot:
                 continue
             demand = self.data.demands[idx]
-            position = [x+y for x, y in zip(loc, [self.radius*1.2, self.radius*1.2])]
+            position = [x+y for x, y in zip(loc, [self.radius*1.2, self.radius*1.1])]
             color = self.color_palette.value(int(math.log(demand, 2)))
             self.svg.draw_text(demand, position, self.radius, 'white', color)
 
@@ -472,54 +481,14 @@ class SVGPrinter():
                 continue
             time_window = self.data.time_windows[idx]
             position = [x+y for x, y in zip(loc, [self.radius*0, -self.radius*1.6])]
-            color = self.color_palette.value(0)
             self.svg.draw_text(
-                '[{t1},{t2}]'.format(t1=time_window[0]/60, t2=time_window[1]/60),
+                '[{t1},{t2}]'.format(t1=time_window[0], t2=time_window[1]),
                 position,
                 self.radius*0.75,
-                'white', color)
-
-    def draw_depot(self):
-        """Draws the depot"""
-        print(r'<!-- Print depot -->')
-        color = self.color_palette.value_from_name('black')
-        loc = self.data.locations[self.data.depot]
-        self.svg.draw_circle(loc, self.radius, self.stroke_width, color, 'white')
-        self.svg.draw_text(self.data.depot, loc, self.radius, 'none', color)
-
-    def draw_route(self, route, color, colorname):
-        """Draws a Route"""
-        # First print route
-        previous_loc_idx = None
-        for loc_idx in route:
-            if previous_loc_idx != None and previous_loc_idx != loc_idx:
-                self.svg.draw_polyline(
-                    self.data.locations[previous_loc_idx],
-                    self.data.locations[loc_idx],
-                    self.stroke_width,
-                    color,
-                    colorname)
-            previous_loc_idx = loc_idx
-        # Then print location along the route
-        previous_loc_idx = None
-        for loc_idx in route:
-            if loc_idx != self.data.depot:
-                #if self._args['capacity'] is True:
-                #    color = self.color_palette.value(int(math.log(self.data.demands[loc_idx], 2)))
-                loc = self.data.locations[loc_idx]
-                self.svg.draw_circle(loc, self.radius, self.stroke_width, color, 'white')
-                self.svg.draw_text(loc_idx, loc, self.radius, 'none', color)
-            previous_loc_idx = loc_idx
-
-    def draw_routes(self):
-        """Draws the routes"""
-        print(r'<!-- Print routes -->')
-        for route_idx, route in enumerate(self.routes()):
-            print(r'<!-- Print route {idx} -->'.format(idx=route_idx))
-            color = self.color_palette.value(route_idx)
-            colorname = self.color_palette.name(route_idx)
-            self.draw_route(route, color, colorname)
-
+                'none', 'black')
+##############
+##  ROUTES  ##
+##############
     def routes(self):
         """Creates the route list from the assignment"""
         if self._assignment is None:
@@ -538,6 +507,80 @@ class SVGPrinter():
             routes.append(route)
         return routes
 
+    def draw_route(self, route, color, colorname):
+        """Draws a Route"""
+        # First print route
+        previous_loc_idx = None
+        for loc_idx in route:
+            if previous_loc_idx != None and previous_loc_idx != loc_idx:
+                self.svg.draw_polyline(
+                    self.data.locations[previous_loc_idx],
+                    self.data.locations[loc_idx],
+                    self.stroke_width,
+                    color,
+                    colorname)
+            previous_loc_idx = loc_idx
+        # Then print location along the route
+        for loc_idx in route:
+            if loc_idx != self.data.depot:
+                loc = self.data.locations[loc_idx]
+                self.svg.draw_circle(loc, self.radius, self.stroke_width, color, 'white')
+                self.svg.draw_text(loc_idx, loc, self.radius, 'none', color)
+
+    def draw_routes(self):
+        """Draws the routes"""
+        print(r'<!-- Print routes -->')
+        for route_idx, route in enumerate(self.routes()):
+            print(r'<!-- Print route {idx} -->'.format(idx=route_idx))
+            color = self.color_palette.value(route_idx)
+            colorname = self.color_palette.name(route_idx)
+            self.draw_route(route, color, colorname)
+
+    def tw_routes(self):
+        """Creates the route time window list from the assignment"""
+        if self._assignment is None:
+            print('<!-- No solution found. -->')
+            return []
+        time_dimension = self._routing.GetDimensionOrDie('Time')
+        loc_routes = []
+        tw_routes = []
+        for vehicle_id in xrange(self.data.num_vehicles):
+            index = self._routing.Start(vehicle_id) # ignore depot
+            index = self._assignment.Value(self._routing.NextVar(index))
+            loc_route = []
+            tw_route = []
+            while not self._routing.IsEnd(index):
+                node_index = self._routing.IndexToNode(index)
+                loc_route.append(node_index)
+                time_var = time_dimension.CumulVar(index)
+                #route_time = self.assignment.Value(time_var)
+                t_min = self._assignment.Min(time_var)
+                t_max = self._assignment.Max(time_var)
+                tw_route.append((t_min, t_max))
+                index = self._assignment.Value(self._routing.NextVar(index))
+            loc_routes.append(loc_route)
+            tw_routes.append(tw_route)
+        return zip(loc_routes, tw_routes)
+
+    def draw_tw_route(self, locations, tw_route, color):
+        """Draws the time windows for a Route"""
+        for loc_idx, tw in zip(locations, tw_route):
+            loc = self.data.locations[loc_idx]
+            position = [x+y for x, y in zip(loc, [self.radius*0, self.radius*1.8])]
+            self.svg.draw_text(
+                '[{t1},{t2}]'.format(t1=tw[0], t2=tw[1]),
+                position,
+                self.radius*0.75,
+                'white', color)
+
+    def draw_tw_routes(self):
+        """Draws the time window routes"""
+        print(r'<!-- Print time window routes -->')
+        for route_idx, loc_tw in enumerate(self.tw_routes()):
+            print(r'<!-- Print time window route {idx} -->'.format(idx=route_idx))
+            color = self.color_palette.value(route_idx)
+            self.draw_tw_route(loc_tw[0], loc_tw[1], color)
+
     def print(self):
         """Prints a full svg document on stdout"""
         margin = self.radius*2 + 2
@@ -554,6 +597,8 @@ class SVGPrinter():
             self.draw_demands()
         if self._args['time_window'] is True:
             self.draw_time_windows()
+        if self._args['time_window'] is True and self._args['solution'] is True:
+            self.draw_tw_routes()
         self.svg.footer()
 
 ########
