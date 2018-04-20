@@ -19,7 +19,7 @@
    A description of the problem can be found here:
    http://en.wikipedia.org/wiki/Vehicle_routing_problem.
 
-   Distances are in meters and time in seconds.
+   Distances are in meters and time in minutes.
 
    Manhattan average block: 750ft x 264ft -> 228m x 80m
    src: https://nyti.ms/2GDoRIe "NY Times: Know Your distance"
@@ -39,8 +39,8 @@ class Vehicle():
     def __init__(self):
         """Initializes the vehicle properties"""
         self._capacity = 15
-        # Travel speed: 5km/h to convert in m/s
-        self._speed = 5 / 3.6
+        # Travel speed: 5km/h to convert in m/min
+        self._speed = 5 * 60 / 3.6
 
     @property
     def capacity(self):
@@ -103,14 +103,14 @@ class DataProblem():
 
         self._time_windows = \
             [(0, 0),
-             (139+2679+1282+821, 139+2679+1282+821), (197+739+2539+1397, 197+739+2539+1397), # 1, 2
-             (139+2679+1282, 139+2679+1282), (139+2679, 139+2679), # 3, 4
-             (197, 197), (197+739+2539, 197+739+2539), # 5, 6
-             (139, 139), (197+739, 197+739), # 7, 8
-             (139, 139), (139+497+1339+2654, 139+497+1339+2654), # 9, 10
-             (279+739+1503+2597, 279+739+1503+2597), (279, 279), # 11, 12
-             (279+739, 279+739), (139+497, 139+497), # 13, 14
-             (279+739+1503, 279+739+1503), (139+497+1339, 139+497+1339)] # 15, 16
+             (75, 85), (75, 85), # 1, 2
+             (60, 70), (45, 55), # 3, 4
+             (0, 8), (50, 60), # 5, 6
+             (0, 10), (10, 20), # 7, 8
+             (0, 10), (75, 85), # 9, 10
+             (85, 95), (5, 15), # 11, 12
+             (15, 25), (10, 20), # 13, 14
+             (45, 55), (30, 40)] # 15, 16
 
     @property
     def vehicle(self):
@@ -144,8 +144,8 @@ class DataProblem():
 
     @property
     def time_per_demand_unit(self):
-        """Gets the time (in s) to load a demand"""
-        return 5 * 60 # 5 minutes/unit
+        """Gets the time (in min) to load a demand"""
+        return 5 # 5 minutes/unit
 
     @property
     def time_windows(self):
@@ -242,15 +242,16 @@ class CreateTimeEvaluator(object):
 def add_time_window_constraints(routing, data, time_evaluator):
     """Add Global Span constraint"""
     time = "Time"
+    horizon = 120
     routing.AddDimension(
         time_evaluator,
-        3600*8, # null slack
-        3600*8, # maximum time per vehicle
+        horizon, # allow waiting time
+        horizon, # maximum time per vehicle
         True, # start cumul to zero
         time)
     time_dimension = routing.GetDimensionOrDie(time)
-    for count, time_window in enumerate(data.time_windows):
-        time_dimension.CumulVar(count).SetRange(time_window[0], time_window[1])
+    for location_idx, time_window in enumerate(data.time_windows):
+        time_dimension.CumulVar(location_idx).SetRange(time_window[0], time_window[1])
 
 ###########
 # Printer #
@@ -289,8 +290,6 @@ class ConsolePrinter():
             index = self.routing.Start(vehicle_id)
             plan_output = 'Route for vehicle {0}:\n'.format(vehicle_id)
             route_dist = 0
-            route_load = 0
-            route_time = 0
             while not self.routing.IsEnd(index):
                 node_index = self.routing.IndexToNode(index)
                 next_node_index = self.routing.IndexToNode(
@@ -301,10 +300,9 @@ class ConsolePrinter():
                 load_var = capacity_dimension.CumulVar(index)
                 route_load = self.assignment.Value(load_var)
                 time_var = time_dimension.CumulVar(index)
-                route_time = self.assignment.Value(time_var)
-                #tmin = self.assignment.Min(time_var)
-                #tmax = self.assignment.Max(time_var)
-                plan_output += ' {0} Load({1}) Time({2}) -> '.format(node_index, route_load, route_time)
+                time_min = self.assignment.Min(time_var)
+                time_max = self.assignment.Max(time_var)
+                plan_output += ' {0} Load({1}) Time({2},{3}) ->'.format(node_index, route_load, time_min, time_max)
                 index = self.assignment.Value(self.routing.NextVar(index))
 
             node_index = self.routing.IndexToNode(index)
@@ -312,15 +310,17 @@ class ConsolePrinter():
             route_load = self.assignment.Value(load_var)
             time_var = time_dimension.CumulVar(index)
             route_time = self.assignment.Value(time_var)
+            time_min = self.assignment.Min(time_var)
+            time_max = self.assignment.Max(time_var)
             total_dist += route_dist
             total_time += route_time
-            plan_output += ' {0} Load({1}) Time({2})\n'.format(node_index, route_load, route_time)
+            plan_output += ' {0} Load({1}) Time({2},{3})\n'.format(node_index, route_load, time_min, time_max)
             plan_output += 'Distance of the route: {0}m\n'.format(route_dist)
             plan_output += 'Load of the route: {0}\n'.format(route_load)
-            plan_output += 'Time of the route: {0}s\n'.format(route_time)
+            plan_output += 'Time of the route: {0}min\n'.format(route_time)
             print(plan_output)
         print('Total Distance of all routes: {0}m'.format(total_dist))
-        print('Total Time of all routes: {0}s'.format(total_time))
+        print('Total Time of all routes: {0}min'.format(total_time))
 
 ########
 # Main #
