@@ -77,20 +77,20 @@ width="1020" height="748" viewBox="-54 -54 1020 748">
 <circle cx="456" cy="320" r="26" style="stroke-width:6;stroke:#101010;fill:white"/>
 <text x="456" y="320" dy="8" style="text-anchor:middle;font-weight:bold;font-size:26;stroke:none;fill:#101010">0</text>
 <!-- Print demands -->
-<text x="259.2" y="31.2" dy="8" style="text-anchor:middle;font-weight:bold;font-size:26;stroke:white;fill:#4285F4">1</text>
-<text x="943.2" y="31.2" dy="8" style="text-anchor:middle;font-weight:bold;font-size:26;stroke:white;fill:#4285F4">1</text>
-<text x="31.2" y="111.2" dy="8" style="text-anchor:middle;font-weight:bold;font-size:26;stroke:white;fill:#EA4335">2</text>
-<text x="145.2" y="111.2" dy="8" style="text-anchor:middle;font-weight:bold;font-size:26;stroke:white;fill:#FBBC05">4</text>
-<text x="601.2" y="191.2" dy="8" style="text-anchor:middle;font-weight:bold;font-size:26;stroke:white;fill:#EA4335">2</text>
-<text x="829.2" y="191.2" dy="8" style="text-anchor:middle;font-weight:bold;font-size:26;stroke:white;fill:#FBBC05">4</text>
-<text x="373.2" y="271.2" dy="8" style="text-anchor:middle;font-weight:bold;font-size:26;stroke:white;fill:#34A853">8</text>
-<text x="715.2" y="271.2" dy="8" style="text-anchor:middle;font-weight:bold;font-size:26;stroke:white;fill:#34A853">8</text>
-<text x="601.2" y="431.2" dy="8" style="text-anchor:middle;font-weight:bold;font-size:26;stroke:white;fill:#4285F4">1</text>
-<text x="943.2" y="431.2" dy="8" style="text-anchor:middle;font-weight:bold;font-size:26;stroke:white;fill:#EA4335">2</text>
-<text x="145.2" y="511.2" dy="8" style="text-anchor:middle;font-weight:bold;font-size:26;stroke:white;fill:#4285F4">1</text>
-<text x="259.2" y="511.2" dy="8" style="text-anchor:middle;font-weight:bold;font-size:26;stroke:white;fill:#EA4335">2</text>
-<text x="373.2" y="591.2" dy="8" style="text-anchor:middle;font-weight:bold;font-size:26;stroke:white;fill:#FBBC05">4</text>
-<text x="715.2" y="591.2" dy="8" style="text-anchor:middle;font-weight:bold;font-size:26;stroke:white;fill:#FBBC05">4</text>
-<text x="31.2" y="671.2" dy="8" style="text-anchor:middle;font-weight:bold;font-size:26;stroke:white;fill:#34A853">8</text>
-<text x="829.2" y="671.2" dy="8" style="text-anchor:middle;font-weight:bold;font-size:26;stroke:white;fill:#34A853">8</text>
+<text x="259.2" y="28.6" dy="8" style="text-anchor:middle;font-weight:bold;font-size:26;stroke:white;fill:#4285F4">1</text>
+<text x="943.2" y="28.6" dy="8" style="text-anchor:middle;font-weight:bold;font-size:26;stroke:white;fill:#4285F4">1</text>
+<text x="31.2" y="108.6" dy="8" style="text-anchor:middle;font-weight:bold;font-size:26;stroke:white;fill:#EA4335">2</text>
+<text x="145.2" y="108.6" dy="8" style="text-anchor:middle;font-weight:bold;font-size:26;stroke:white;fill:#FBBC05">4</text>
+<text x="601.2" y="188.6" dy="8" style="text-anchor:middle;font-weight:bold;font-size:26;stroke:white;fill:#EA4335">2</text>
+<text x="829.2" y="188.6" dy="8" style="text-anchor:middle;font-weight:bold;font-size:26;stroke:white;fill:#FBBC05">4</text>
+<text x="373.2" y="268.6" dy="8" style="text-anchor:middle;font-weight:bold;font-size:26;stroke:white;fill:#34A853">8</text>
+<text x="715.2" y="268.6" dy="8" style="text-anchor:middle;font-weight:bold;font-size:26;stroke:white;fill:#34A853">8</text>
+<text x="601.2" y="428.6" dy="8" style="text-anchor:middle;font-weight:bold;font-size:26;stroke:white;fill:#4285F4">1</text>
+<text x="943.2" y="428.6" dy="8" style="text-anchor:middle;font-weight:bold;font-size:26;stroke:white;fill:#EA4335">2</text>
+<text x="145.2" y="508.6" dy="8" style="text-anchor:middle;font-weight:bold;font-size:26;stroke:white;fill:#4285F4">1</text>
+<text x="259.2" y="508.6" dy="8" style="text-anchor:middle;font-weight:bold;font-size:26;stroke:white;fill:#EA4335">2</text>
+<text x="373.2" y="588.6" dy="8" style="text-anchor:middle;font-weight:bold;font-size:26;stroke:white;fill:#FBBC05">4</text>
+<text x="715.2" y="588.6" dy="8" style="text-anchor:middle;font-weight:bold;font-size:26;stroke:white;fill:#FBBC05">4</text>
+<text x="31.2" y="668.6" dy="8" style="text-anchor:middle;font-weight:bold;font-size:26;stroke:white;fill:#34A853">8</text>
+<text x="829.2" y="668.6" dy="8" style="text-anchor:middle;font-weight:bold;font-size:26;stroke:white;fill:#34A853">8</text>
 </svg>
